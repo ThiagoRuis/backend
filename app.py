@@ -61,8 +61,46 @@ def get_movie_details(movie_id):
         'overview': response_json['overview'],
         'release_date': response_json['release_date'],
     }
+    return json.dumps(movie)
 
-    return movie
+
+@app.route("/search/<search_string>")
+def search_movie(search_string):
+    genreDict = get_genre_list()
+    url = "https://api.themoviedb.org/3/search/movie"
+    payload = {
+        'api_key': app.config['TMDB_API_KEY'],
+        'query': search_string
+    }
+    response = requests.request("GET", url, data=payload)
+    response_json = json.loads(response.text)
+
+    movies = []
+    for item in response_json['results']:
+        genre_list = []
+        for genre_id in item['genre_ids']:
+            genre_list.append(genreDict[genre_id])
+
+        movie = {
+            'id': item['id'],
+            'title': item['title'],
+            'poster_img': item['poster_path'],
+            'genre_ids': item['genre_ids'],
+            'genre_list': genre_list,
+            'overview': item['overview'],
+            'release_date': item['release_date'],
+        }
+        movies.append(movie)
+
+    search_results = {
+        'movies': movies,
+        'total_results': response_json['total_results'],
+        'total_pages': response_json['total_pages'],
+        'page': response_json['page'],
+        'search_string': search_string
+    }
+
+    return json.dumps(search_results)
 
 
 def get_genre_list():
