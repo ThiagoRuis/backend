@@ -2,7 +2,6 @@ import os, requests, json
 from flask import Flask, request
 
 app = Flask(__name__)
-app.config['TMDB_API_KEY'] = '1f54bd990f1cdfb230adb312546d765d'
 
 
 @app.route("/")
@@ -13,11 +12,12 @@ def index():
 @app.route("/upcoming/<page>")
 def get_upcoming_movies(page):
     genreDict = get_genre_list()
+    config = get_config()
 
-    url = "https://api.themoviedb.org/3/movie/upcoming"
+    url = os.environ.get('BASE_URL') + "movie/upcoming"
 
     payload = {
-        'api_key': app.config['TMDB_API_KEY'],
+        'api_key': os.environ.get('TMDB_API_KEY'),
         'page': page
     }
     response = requests.request("GET", url, data=payload)
@@ -46,9 +46,9 @@ def get_upcoming_movies(page):
 
 @app.route("/movies/<movie_id>")
 def get_movie_details(movie_id):
-    url = "https://api.themoviedb.org/3/movie/" + movie_id
+    url = os.environ.get('BASE_URL') + "movie/" + movie_id
     payload = {
-        'api_key': app.config['TMDB_API_KEY'],
+        'api_key': os.environ.get('TMDB_API_KEY'),
     }
     response = requests.request("GET", url, data=payload)
     response_json = json.loads(response.text)
@@ -67,9 +67,11 @@ def get_movie_details(movie_id):
 @app.route("/search/<search_string>")
 def search_movie(search_string):
     genreDict = get_genre_list()
-    url = "https://api.themoviedb.org/3/search/movie"
+    config = get_config()
+
+    url = os.environ.get('BASE_URL') + "search/movie"
     payload = {
-        'api_key': app.config['TMDB_API_KEY'],
+        'api_key': os.environ.get('TMDB_API_KEY'),
         'query': search_string
     }
     response = requests.request("GET", url, data=payload)
@@ -104,10 +106,10 @@ def search_movie(search_string):
 
 
 def get_genre_list():
-    url = "https://api.themoviedb.org/3/genre/movie/list"
+    url = os.environ.get('BASE_URL') + "genre/movie/list"
 
     payload = {
-        'api_key': app.config['TMDB_API_KEY'],
+        'api_key': os.environ.get('TMDB_API_KEY'),
     }
     response = requests.request("GET", url, data=payload)
 
@@ -116,6 +118,17 @@ def get_genre_list():
         genreDict[genre['id']] = genre['name']
 
     return genreDict
+
+
+def get_config():
+    url = os.environ.get('BASE_URL') + "configuration"
+
+    payload = {
+        'api_key': os.environ.get('TMDB_API_KEY'),
+    }
+    response = requests.request("GET", url, data=payload)
+
+    return response.json()['secure_base_url']
 
 if __name__ == '__main__':
     app.run()
