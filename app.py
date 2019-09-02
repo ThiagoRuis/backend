@@ -18,7 +18,7 @@ def get_upcoming_movies():
     movies = []
     url = os.environ.get('BASE_URL') + 'movie/upcoming'
 
-    for index in range(1, 2):
+    for index in range(1, 3):
         payload = {
             'api_key': os.environ.get('TMDB_API_KEY'),
             'page': str(index)
